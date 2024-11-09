@@ -1,0 +1,5 @@
+:: Launch a PS script.
+powershell.exe -executionpolicy bypass -file "C:\ProgramData\ANF\Printer_ANFLABS_Install\ANFLABS_Install.ps1"
+
+:: Launch a PS script silently.
+powershell.exe -executionpolicy bypass -windowstyle hidden -noninteractive -nologo -file "C:\ProgramData\ANF\Printer_ANFLABS_Install\ANFLABS_Install.ps1"
