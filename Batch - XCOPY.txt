@@ -1,0 +1,178 @@
+Working Examples: 
+
+xcopy /y /c /q /r "COPYFROMPATH" "COPYTOPATH"
+xcopy /y /c /q /r "%~dp0Custom\*.*" "C:\Program Files\Gerber Technology\"
+xcopy /y /c /q /r /s "licloc.txt" %PDLectra%\Config\Modaservice\
+
+
+
+SS64
+CMD 
+How-to 
+XCOPY.exe
+Copy files and/or directory trees to another folder. XCOPY is similar to the COPY command except that it has additional switches to specify both the source and destination in detail.
+
+Syntax
+      XCOPY source [destination] [options]
+
+Key
+   source      : Pathname for the file(s) to be copied (accepts wildcards).
+                   C:\demo.txt     Filename with extension.
+                   C:\demo         Filename without extension.
+                   C:\demo\        Folder.
+                   C:\demo\*.txt   Folder with wildcard.
+
+   destination : Pathname for the new file(s).
+   
+   [options] can be any combination of the following:
+      
+Source Options
+      
+   /A    Copy files with the archive attribute set (default=Y)
+
+   /M    Copy files with the archive attribute set and
+         turn off the archive attribute, use this option
+         when making regular Backups (default=Y).
+                                   
+   /H    Copy hidden and system files and folders (default=N)
+
+   /D:mm-dd-yyyy
+         Copy files changed on or after the specified date.
+         If no date is given, copy only files whose
+         source date/time is newer than the destination time.
+
+   /U    Copy only files that already exist in destination.
+   
+   /S    Copy folders and subfolders.
+
+   /E    Copy folders and subfolders, including Empty folders.
+         can be used to modify /T.
+
+   /EXCLUDE:file1[+file2][+file3]...
+
+         The files can each contain one or more full or partial pathnames to be excluded.
+         When any of these match any part of the absolute path of a SOURCE file, then 
+         that file will be excluded.
+         For example, specifying a string like \obj\ or .obj will exclude all files
+         underneath the directory obj or all files with the .obj extension respectively.
+               
+Copy Options
+               
+   /B    Copy the Symbolic link itself, not the target of the file.
+   /C    Continue copying even if an error occurs.
+   /F    Display full source and destination file names while copying.
+   /G    Allow the copying of encrypted files to a destination that does not support encryption.
+   /L    List only, Display files that would be copied.
+   /Q    Do not display file names while copying.
+   /V    Verify that the new files are readable.
+   /W    Prompt you to press a key before starting to copy.
+   /P    Prompt before creating each file.
+   /Y    Suppress prompt to confirm overwriting a file.
+         can be preset in the COPYCMD env variable.
+   /-Y   Prompt to confirm overwriting a file.
+
+
+Performance tweaks
+
+   /COMPRESS  Request SMB network compression during file transfer, if applicable.
+   /J         Copy using unbuffered I/O. Recommended for very large files.
+   /Z         Copy files in restartable mode. If the copy is interrupted part way through,
+              it will restart if possible. use with caution as this significantly
+              reduces copy performance due to the extra logging.
+
+Destination Options
+
+   /I    If in doubt always assume the destination is a folder
+         e.g. when the destination does not exist.
+
+   /R    Overwrite read-only files.
+
+   /T    Create folder structure, but do not copy files. 
+         Do not include empty folders or subfolders.
+   /T /E will include empty folders and subfolders.
+
+   /K    Copy attributes. XCOPY will otherwise reset read-only attributes.
+
+   /N    If at all possible, use only a short filename (8.3) when creating
+         a destination file. This can be necessary when copying between disks
+         that are formatted differently e.g NTFS and VFAT, or when archiving 
+         data to an ISO9660 CDROM.
+
+   /O    Copy file Ownership and ACL information.
+
+   /X    Copy file audit settings (implies /O).
+
+XCOPY will accept UNC pathnames.
+
+If the source directory contains a symbolic link XCOPY will create a matching directory in the destination on the first run (if one doesn’t already exist) but all subsequent XCOPY operations will then fail returning errorlevel 4. Use Robocopy to avoid this.
+
+To always overwrite destination files use the COPYCMD environment variable: SET COPYCMD=/Y
+
+XCOPY is particularly useful when copying files from CDROM to a hard drive, as it will automatically remove the read-only attribute.
+
+When comparing Dates/Times the granularity (the finest increment of the timestamp) is 2 seconds for a FAT volume and 0.1 microsecond for an NTFS volume.
+
+Copy a single file
+In many cases copying a single file is best done with the COPY command. When copying a single file with XCOPY, there is no option to indicate if the destination is a filename or a directory (with the filename defaulting to that of the source file).
+In such cases XCOPY will prompt with a (locale specific) message like:
+
+C:\> xcopy C:\demo\foo.txt C:\demo\bar.txt
+Does C:\demo\foo.txt specify a file name
+or directory name on the target
+(F = file, D = directory)?
+
+Adding a wildcard (*) to the end of the destination will suppress this prompt and default to copying as a file:
+
+C:\> xcopy foo.txt bar.txt*
+C:foo.txt
+1 File(s) copied
+This requires the source and target file extensions to be the same length, typically 3 characters.
+
+Insufficient Memory error
+Attempting to XCOPY a source file that has a pathname longer than the Windows maximum path length (254 characters) will result in a rather unhelpful 'Insufficient Memory' error, the operation will then halt. This bug which has been around for over 10 years makes XCOPY a poor choice for any kind of backup script, use ROBOCOPY instead.
+
+Comparison with Robocopy
+In 2007 XCOPY was deprecated in favor of Robocopy, but it has since been given a reprieve and some new features added.
+
+There is a lot of overlap between the two tools, Robocopy is generally better (more 'robust') at copying very large directories.
+
+In XCOPY the *.* filename-mask is required to match all files, in robocopy this is not needed as it is the default action.
+The XCOPY /D option will copy only files whose source date/time is newer than the destination time, this is also a default action for Robocopy.
+To exclude files (XCOPY /exclude) use the Robocopy options /XF (exclude files) and /XD (exclude directories).
+For multiple exclusions, use Robocopy /JOB files_to_exclude.rcj
+
+Exit Codes
+0 Files were copied without error.
+1 No files were found to copy.
+2 The user pressed CTRL+C to terminate xcopy.
+4 Initialization error occurred. There is not enough memory or disk space, or you entered an invalid drive name or invalid syntax on the command line. In the case of symbolic links: the destination folder already exists.
+5 Disk write error occurred.
+
+Examples
+Copy a file:
+
+echo F| XCOPY C:\demo\sourceFile.txt D:\work\DestFile.txt
+
+Copy all files within the 'demo' folder:
+
+XCOPY.exe C:\demo\ D:\work\april\
+
+Copy all files within the 'source' folder and copy them to a subfolder called 'new':
+
+XCOPY C:\source\ C:\source\new /i
+or
+XCOPY C:\source\ C:\source\new\
+
+Copy all files within the 'demo' folder plus all subfolders:
+
+XCOPY C:\demo\* D:\work\april /s
+
+
+
+Related commands
+COPY - Copy one or more files to another location.
+DEL - Delete files.
+MOVE - Move a file from one folder to another.
+ROBOCOPY - Robust File and Folder Copy.
+PowerShell: Copy-Item - Copy an item from one location to another.
+Equivalent bash command (Linux): cp - Copy one or more files to another location.
