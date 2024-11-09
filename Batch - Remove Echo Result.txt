@@ -1,0 +1,2 @@
+:: Removes echo result from any line.
+>nul 2>&1
